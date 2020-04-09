@@ -13,13 +13,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:id', validatePostId, (req, res) => {
-  Post.getById(req.params.id)
-  .then(post => {
-    res.status(201).json(post);
-  })
-  .catch(() => {
-    res.status(500).json({ message: 'There was an error fetching the post from the database' });
-  })
+  res.status(201).json(req.user);
 });
 
 router.delete('/:id', validatePostId, (req, res) => {
@@ -47,12 +41,14 @@ router.put('/:id', validatePostId, (req, res) => {
 
 // custom middleware
 function validatePostId(req, res, next) {
-  Post.getById(req.params.id)
+  const { id } = req.params;
+  Post.getById(id)
   .then(post => {
-    if(post){
-      next();
-    }else{
+    if(!post){
       res.status(404).json({ message: "Post does not exist in the database" });
+    }else{
+      req.post = post;
+      next();
     }
   })
   .catch(() => {

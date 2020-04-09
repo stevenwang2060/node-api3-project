@@ -38,13 +38,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:id', validateUserId, (req, res) => {
-  User.getById(req.params.id)
-  .then(user => {
-    res.status(201).json(user);
-  })
-  .catch(() => {
-    res.status(500).json({ message: 'There was an error fetching the user from the database' });
-  })
+    res.status(201).json(req.user);
 });
 
 router.get('/:id/posts', validateUserId, (req, res) => {
@@ -82,12 +76,14 @@ router.put('/:id', validateUserId, (req, res) => {
 
 //custom middleware
 function validateUserId(req, res, next) {
-  User.getById(req.params.id)
+  const { id } = req.params;
+  User.getById(id)
   .then(user => {
-    if(user){
-      next();
+    if(!user){
+        res.status(404).json({ message: "User does not exist in the database" });
     }else{
-      res.status(404).json({ message: "User does not exist in the database" });
+        req.user = user;
+        next();
     }
   })
   .catch(() => {
